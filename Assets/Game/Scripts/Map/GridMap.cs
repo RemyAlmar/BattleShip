@@ -9,7 +9,7 @@ public class GridMap : MonoBehaviour, IGridService
 	[SerializeField, Min(1)] private int _rows = 1;
 	[SerializeField, Min(1)] private int _columns = 1;
 
-	private Vector3[,] _grid;
+	private Cell[,] _grid;
 	public static IGridService Instance { get; private set; }
 
 	private void Awake()
@@ -30,8 +30,8 @@ public class GridMap : MonoBehaviour, IGridService
 			Debug.LogWarning($"[GridMap] Attention une classe de type Metrics doit être sérialisée");
 			return;
 		}
-		_grid = new Vector3[_rows, _columns];
-		ActionInGrid((x, y, pos) => { _grid[x, y] = pos; });
+		_grid = new Cell[_rows, _columns];
+		ActionInGrid((x, y, pos) => { _grid[x, y] = new Cell(x, y, pos); });
 	}
 
 	public bool IsValidCell(int x, int y) => x >= 0 && x < _grid.GetLength(0) && y >= 0 && y < _grid.GetLength(1);
@@ -58,7 +58,7 @@ public class GridMap : MonoBehaviour, IGridService
 		worldPos = Vector3.zero;
 		if (TryGetHoveredCell(ray, out Vector2Int gridPos))
 		{
-			worldPos = _grid[gridPos.x, gridPos.y];
+			worldPos = _grid[gridPos.x, gridPos.y].WorldPosition;
 			return true;
 		}
 
@@ -81,6 +81,21 @@ public class GridMap : MonoBehaviour, IGridService
 	private void OnDrawGizmos()
 	{
 		if (_shapeSettings == null || _shapeSettings.Shape == null || _grid.Length <= 0) return;
-		ActionInGrid((x, y, pos) => { _shapeSettings.Shape.DrawTo(_grid[x, y]); });
+		ActionInGrid((x, y, pos) => { _shapeSettings.Shape.DrawTo(_grid[x, y].WorldPosition); });
+	}
+}
+
+public class Cell
+{
+	public Vector3 WorldPosition { get; }
+	public Vector2Int GridPosition { get; }
+
+	public bool IsOccupied;
+	public GameObject Content;
+
+	public Cell(int x, int y, Vector3 worldPosition)
+	{
+		GridPosition = new Vector2Int(x, y);
+		WorldPosition = worldPosition;
 	}
 }
