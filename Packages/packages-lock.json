@@ -1,5 +1,23 @@
 {
   "dependencies": {
+    "com.remyalmar.core": {
+      "version": "file:E:/ProjetPerso/UnityPackages/PackagesJSON/CustomUnityPackage/Runtime/CoreSystem",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {}
+    },
+    "com.remyalmar.odinlike": {
+      "version": "file:E:/ProjetPerso/UnityPackages/PackagesJSON/CustomUnityPackage/Editor/OdinLike",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {}
+    },
+    "com.remyalmar.shapesystem.boundshape": {
+      "version": "file:E:/ProjetPerso/UnityPackages/PackagesJSON/CustomUnityPackage/Runtime/ShapeSystem/Bound",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {}
+    },
     "com.unity.ai.navigation": {
       "version": "2.0.12",
       "depth": 0,
