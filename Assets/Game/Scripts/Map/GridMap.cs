@@ -45,9 +45,8 @@ public class GridMap : MonoBehaviour, IGridService
 		if (groundPlane.Raycast(ray, out float enterDistance))
 		{
 			Vector3 worldHitPoint = ray.GetPoint(enterDistance);
-
 			gridPos = _metrics.WorldToGridPosition(worldHitPoint);
-
+			Debug.DrawRay(ray.origin, ray.direction * enterDistance);
 			return IsValidCell(gridPos.x, gridPos.y);
 		}
 
