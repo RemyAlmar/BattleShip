@@ -5,9 +5,15 @@ public class PlayerController : MonoBehaviour, PlayerInputAction.IGameplayAction
 {
 	private PlayerInputAction _action;
 	[SerializeField] private GameObject _selector;
+	[SerializeField] private FleetSpawner _spawner;
+
 	private void Awake()
 	{
 		_action ??= new();
+	}
+	private void Start()
+	{
+		_spawner.SpawnFleet();
 	}
 
 	private void OnEnable()
