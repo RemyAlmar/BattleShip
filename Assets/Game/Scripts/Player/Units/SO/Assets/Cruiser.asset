@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 58e2ac1001955744caa265ec869a8de7, type: 3}
   m_Name: Cruiser
   m_EditorClassIdentifier: Assembly-CSharp::ShipData_SO
-  Data:
-    Name: Cruiser
+  _data:
+    Name: Cuiser
     Size: 2
     SpeedMax: 4
     AccelerationRate: 1.5

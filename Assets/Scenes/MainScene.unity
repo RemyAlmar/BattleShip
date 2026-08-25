@@ -129,7 +129,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 23d5673afa0743241887d0c607688352, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: 9.91
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 23d5673afa0743241887d0c607688352, type: 3}
       propertyPath: m_LocalPosition.y
@@ -137,7 +137,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 23d5673afa0743241887d0c607688352, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: 9.68
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 23d5673afa0743241887d0c607688352, type: 3}
       propertyPath: m_LocalRotation.w
@@ -489,7 +489,7 @@ Transform:
   m_GameObject: {fileID: 629941624}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -0, z: 0}
+  m_LocalPosition: {x: 13.76, y: -0, z: 10.77}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -514,8 +514,9 @@ MonoBehaviour:
   - {fileID: 11400000, guid: d34ed756d1f89664290d0a47bc8f2115, type: 2}
   - {fileID: 11400000, guid: 56737940edc091d42a7a6207bfb48db8, type: 2}
   - {fileID: 11400000, guid: 5dc64ab3ac65bf64eae4f729e901af00, type: 2}
-  _spawnZoneMinPercent: {x: 0, y: 0}
-  _spawnZoneMaxPercent: {x: 100, y: 30}
+  _spawnZonePercent:
+    Min: {x: 0, y: 0}
+    Max: {x: 100, y: 25}
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0
@@ -599,8 +600,11 @@ MonoBehaviour:
   _metrics:
     rid: 1393533684822310974
   _cellSize: 1
-  _rows: 15
-  _columns: 15
+  _rows: 16
+  _columns: 16
+  _cellRenderPrefab: {fileID: 5101795425227962443, guid: c49cd05c22d62204880b940aa1d09f38, type: 3}
+  _colorEmpty: {r: 1, g: 1, b: 1, a: 0.5882353}
+  _colorOccupied: {r: 1, g: 0, b: 0, a: 0.5882353}
   references:
     version: 2
     RefIds:

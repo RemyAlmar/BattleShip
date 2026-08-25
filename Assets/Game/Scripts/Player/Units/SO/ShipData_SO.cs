@@ -4,7 +4,8 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "ShipData", menuName = "Scriptable Objects/Game/Units/Ship")]
 public class ShipData_SO : ScriptableObject
 {
-	public readonly ShipData Data;
+	[SerializeField] private ShipData _data;
+	public ShipData Data => _data;
 	private int _id = -1;
 	public int Id
 	{

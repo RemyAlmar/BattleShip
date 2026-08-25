@@ -10,16 +10,25 @@ public class GridMap : MonoBehaviour, IGridService
 	[SerializeField, Min(1)] private int _rows = 1;
 	[SerializeField, Min(1)] private int _columns = 1;
 
+	[SerializeField] private RenderProvider _cellRenderPrefab;
+	[SerializeField] private Color _colorEmpty = Color.white;
+	[SerializeField] private Color _colorOccupied = Color.red;
 	private Cell[,] _grid;
 	public static IGridService Instance { get; private set; }
 
-	public Vector2Int MapSize => new(_grid.GetLength(0), _grid.GetLength(1));
+	public Vector2Int MapSize => new(_grid.GetLength(0) - 1, _grid.GetLength(1) - 1);
 
 	private void Awake()
 	{
 		Instance = this;
 		_metrics.CellSize = _cellSize;
 		GenerateGrid();
+		ActionInGrid((x, y, pos) =>
+		{
+			Cell cell = GetCell(x, y);
+			cell.CellRender = Instantiate(_cellRenderPrefab, pos, Quaternion.identity);
+			cell.CellRender.SetColor(_colorEmpty);
+		});
 	}
 	private void OnValidate()
 	{
@@ -100,12 +109,11 @@ public class GridMap : MonoBehaviour, IGridService
 	public bool TryPlaceOccupant(IGridOccupant occupant, Vector2Int origin, byte direction)
 	{
 		IReadOnlyList<Vector2Int> targetCells = occupant.GetOccupiedCellsAt(origin, direction);
-
-		foreach (Vector2Int cell in targetCells)
+		foreach (Vector2Int cellGridPos in targetCells)
 		{
-			if (!IsValidCell(cell.x, cell.y)) return false;
-
-			if (IsCellOccupied(cell.x, cell.y) && GetCell(cell.x, cell.y).Occupant != occupant)
+			if (!TryGetCell(cellGridPos, out Cell cell))
+				return false;
+			if (cell.IsOccupied && cell.Occupant != occupant)
 				return false;
 		}
 
@@ -113,10 +121,11 @@ public class GridMap : MonoBehaviour, IGridService
 
 		occupant.SetGridPositionAndRotation(origin, direction);
 
-		foreach (Vector2Int cell in targetCells)
+		foreach (Vector2Int cellGridPos in targetCells)
 		{
-			_grid[cell.x, cell.y].IsOccupied = true;
-			_grid[cell.x, cell.y].Occupant = occupant;
+			Cell cell = GetCell(cellGridPos.x, cellGridPos.y);
+			cell.Occupant = occupant;
+			cell.CellRender.SetColor(_colorOccupied);
 		}
 
 		return true;
@@ -136,12 +145,12 @@ public class GridMap : MonoBehaviour, IGridService
 	/// </summary>
 	public void ClearOccupantCells(IGridOccupant occupant)
 	{
-		foreach (Vector2Int cell in occupant.GetOccupiedCells())
+		foreach (Vector2Int cellGridPos in occupant.GetOccupiedCells())
 		{
-			if (IsValidCell(cell.x, cell.y) && _grid[cell.x, cell.y].Occupant == occupant)
+			if (TryGetCell(cellGridPos, out Cell cell) && cell.Occupant == occupant)
 			{
-				_grid[cell.x, cell.y].IsOccupied = false;
-				_grid[cell.x, cell.y].Occupant = null;
+				cell.Occupant = null;
+				cell.CellRender.SetColor(_colorEmpty);
 			}
 		}
 	}
@@ -158,17 +167,48 @@ public class GridMap : MonoBehaviour, IGridService
 		return true;
 	}
 
-	public Vector3 GridToWorldPosition(Vector2Int gridPos) => _grid[gridPos.x, gridPos.y].WorldPosition;
+	public Vector3 GridToWorldPosition(Vector2Int gridPos)
+	{
+		Vector3 worldPos = Vector3.zero;
+		if (TryGetCell(gridPos, out Cell cell))
+			worldPos = cell.WorldPosition;
+		return worldPos;
+	}
 
 	public Quaternion DirectionToWorldRotation(byte direction) => Quaternion.Euler(new Vector3(0, _metrics.GetAngle(direction), 0));
+
+	public List<Cell> GetCellsInRange(Vector2Int min, Vector2Int max)
+	{
+		List<Cell> cells = new();
+		for (int x = min.x; x <= max.x; x++)
+		{
+			for (int y = min.y; y <= max.y; y++)
+			{
+				if (TryGetCell(new(x, y), out Cell cell))
+					cells.Add(cell);
+			}
+		}
+		return cells;
+	}
+
+	public List<Cell> GetFreeCells(List<Cell> cells)
+	{
+		List<Cell> validCell = new(cells);
+		cells.ForEach(cell =>
+		{
+			if (cell.IsOccupied)
+				validCell.Remove(cell);
+		});
+		return validCell;
+	}
 }
 
 public class Cell
 {
 	public Vector3 WorldPosition { get; }
 	public Vector2Int GridPosition { get; }
-
-	public bool IsOccupied;
+	public RenderProvider CellRender { get; set; }
+	public bool IsOccupied => Occupant != null;
 	public IGridOccupant Occupant;
 
 	public Cell(int x, int y, Vector3 worldPosition)

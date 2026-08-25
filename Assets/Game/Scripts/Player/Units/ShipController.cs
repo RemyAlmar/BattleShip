@@ -34,14 +34,11 @@ public class ShipController : MonoBehaviour, IInitializable<ShipData_SO>, IGridO
 	public IReadOnlyList<Vector2Int> GetOccupiedCellsAt(Vector2Int origin, byte direction)
 	{
 		List<Vector2Int> occupied = new();
-		Vector2Int current = origin;
-		occupied.Add(current);
-
-		for (int i = 1; i < _data.Data.Size; i++)
+		for (int i = 0; i < _data.Data.Size; i++)
 		{
-			Vector2Int dirOffset = GridMap.Instance.GetDirection(direction, current.y);
-			current += dirOffset;
-			occupied.Add(current);
+			Vector2Int dirOffset = GridMap.Instance.GetDirection(direction, origin.y);
+			occupied.Add(origin);
+			origin += dirOffset;
 		}
 
 		return occupied;

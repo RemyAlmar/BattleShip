@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public interface IGridService
@@ -15,4 +16,6 @@ public interface IGridService
 	public bool TryRotateOccupant(IGridOccupant occupant, int stepCount);
 	public Vector3 GridToWorldPosition(Vector2Int gridPos);
 	public Quaternion DirectionToWorldRotation(byte direction);
+	public List<Cell> GetCellsInRange(Vector2Int min, Vector2Int max);
+	public List<Cell> GetFreeCells(List<Cell> cells);
 }
