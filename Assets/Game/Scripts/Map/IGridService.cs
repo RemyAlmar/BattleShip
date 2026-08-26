@@ -12,6 +12,8 @@ public interface IGridService
 	public Vector2Int GetDirection(byte dir, int currentY = 0);
 
 	public bool IsCellOccupied(int x, int y);
+	public void ClearOccupantCells(IGridOccupant occupant);
+	public void ClearOccupantsCells(List<IGridOccupant> occupants);
 	public bool TryPlaceOccupant(IGridOccupant occupant, Vector2Int origin, byte direction);
 	public bool TryRotateOccupant(IGridOccupant occupant, int stepCount);
 	public Vector3 GridToWorldPosition(Vector2Int gridPos);

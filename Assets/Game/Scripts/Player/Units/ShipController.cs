@@ -13,6 +13,8 @@ public class ShipController : MonoBehaviour, IInitializable<ShipData_SO>, IGridO
 	public Vector2Int Origin { get; private set; }
 	public byte Direction { get; private set; }
 
+	public int Size { get; private set; }
+
 	private void Awake()
 	{
 		_render = GetComponent<RenderProvider>();
@@ -27,6 +29,8 @@ public class ShipController : MonoBehaviour, IInitializable<ShipData_SO>, IGridO
 		_render.SetMesh(_data.Mesh);
 		_render.SetMaterial(_data.Material);
 		_render.SetColor(_data.Color);
+
+		Size = _data.Data.Size;
 	}
 
 	public List<Vector2Int> GetOccupiedCells() => GetOccupiedCellsAt(Origin, Direction);
@@ -66,6 +70,7 @@ public interface IGridOccupant
 	public Transform Transform { get; }
 	public Vector2Int Origin { get; }
 	public byte Direction { get; }
+	public int Size { get; }
 	public List<Vector2Int> GetOccupiedCells();
 	public List<Vector2Int> GetOccupiedCellsAt(Vector2Int targetOrigin, byte targetDirection);
 	public void SetGridPositionAndRotation(Vector2Int newOrigin, byte direction);
