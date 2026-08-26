@@ -18,4 +18,12 @@ public interface IGridService
 	public Quaternion DirectionToWorldRotation(byte direction);
 	public List<Cell> GetCellsInRange(Vector2Int min, Vector2Int max);
 	public List<Cell> GetFreeCells(List<Cell> cells);
+	/// <summary>
+	/// Renvoie les voisins adjacents selon le niveau de profondeur (1 = les voisins direct, 2 les voisins direct des voisins direct, etc...)
+	/// </summary>
+	/// <param name="_gridPos">Position d'origine</param>
+	/// <param name="depth">Niveau de profondeur</param>
+	/// <returns></returns>
+	public List<Vector2Int> GetNeighbors(Vector2Int _gridPos, int depth = 1);
+	public List<Vector2Int> GetNeighbors(List<Vector2Int> _gridPoses, int depth = 1);
 }

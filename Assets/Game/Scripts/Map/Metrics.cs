@@ -5,6 +5,7 @@ using UnityEngine;
 public abstract class Metrics : IGridMetrics
 {
 	protected float _cellSize = 1f;
+	public abstract int DirectionCount { get; }
 	public abstract Vector3 GridToWorldPosition(int x, int y);
 	public abstract Vector2Int WorldToGridPosition(Vector3 worldPos);
 
@@ -51,6 +52,8 @@ public class HexaMetrics : Metrics
 		}
 	}
 
+	public override int DirectionCount => 6;
+
 	public override Vector3 GridToWorldPosition(int x, int y)
 	{
 		float xPos = x * (_innerRadius * 2f);
@@ -96,6 +99,8 @@ public class SquareMetrics : Metrics
 		new(0, -1), // South (2)
 		new(-1, 0)  // West (3)
 	};
+
+	public override int DirectionCount => 4;
 
 	public override int GetAngle(byte dir) => AngleDirections[dir];
 

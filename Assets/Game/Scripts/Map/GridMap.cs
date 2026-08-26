@@ -180,9 +180,9 @@ public class GridMap : MonoBehaviour, IGridService
 	public List<Cell> GetCellsInRange(Vector2Int min, Vector2Int max)
 	{
 		List<Cell> cells = new();
-		for (int x = min.x; x <= max.x; x++)
+		for (int y = min.y; y <= max.y; y++)
 		{
-			for (int y = min.y; y <= max.y; y++)
+			for (int x = min.x; x <= max.x; x++)
 			{
 				if (TryGetCell(new(x, y), out Cell cell))
 					cells.Add(cell);
@@ -200,6 +200,113 @@ public class GridMap : MonoBehaviour, IGridService
 				validCell.Remove(cell);
 		});
 		return validCell;
+	}
+	private List<Vector2Int> GetNeighbors(Vector2Int gridPos)
+	{
+		List<Vector2Int> neighbors = new(_metrics.DirectionCount);
+
+		for (byte i = 0; i < _metrics.DirectionCount; i++)
+		{
+			Vector2Int targetPos = gridPos + GetDirection(i, gridPos.y);
+			if (TryGetCell(targetPos, out Cell cell))
+			{
+				neighbors.Add(cell.GridPosition);
+				cell.CellRender.SetColor(Color.red);
+			}
+		}
+		return neighbors;
+	}
+	public List<Vector2Int> GetNeighbors(Vector2Int gridPos, int depth = 1)
+	{
+		if (depth <= 0)
+			return new List<Vector2Int>();
+		if (depth == 1)
+			return GetNeighbors(gridPos);
+
+		List<Vector2Int> neighbors = new(_metrics.DirectionCount * depth);
+		HashSet<Vector2Int> visited = new() { gridPos };
+
+		Queue<Vector2Int> currentLayer = new();
+		currentLayer.Enqueue(gridPos);
+
+		for (int step = 0; step < depth; step++)
+		{
+			int layerSize = currentLayer.Count;
+			for (int i = 0; i < layerSize; i++)
+			{
+				Vector2Int currentPos = currentLayer.Dequeue();
+				for (byte dir = 0; dir < _metrics.DirectionCount; dir++)
+				{
+					Vector2Int neighborPos = currentPos + GetDirection(dir, currentPos.y);
+
+					if (visited.Add(neighborPos) && TryGetCell(neighborPos, out Cell neighborCell))
+					{
+						neighbors.Add(neighborCell.GridPosition);
+						currentLayer.Enqueue(neighborPos);
+						neighborCell.CellRender.SetColor(Color.green);
+					}
+				}
+			}
+		}
+		return neighbors;
+	}
+
+	private List<Vector2Int> GetNeighbors(List<Vector2Int> gridPoses)
+	{
+		List<Vector2Int> neighbors = new();
+		if (gridPoses == null || gridPoses.Count == 0) return neighbors;
+
+		HashSet<Vector2Int> registered = new();
+		HashSet<Vector2Int> originPositions = new(gridPoses);
+		foreach (Vector2Int gridPos in gridPoses)
+		{
+			for (byte i = 0; i < _metrics.DirectionCount; i++)
+			{
+				Vector2Int targetPos = gridPos + GetDirection(i, gridPos.y);
+
+				if (!originPositions.Contains(targetPos) && TryGetCell(targetPos, out Cell cell) && registered.Add(cell.GridPosition))
+				{
+					neighbors.Add(cell.GridPosition);
+					cell.CellRender.SetColor(Color.cyan);
+				}
+			}
+		}
+		return neighbors;
+	}
+	public List<Vector2Int> GetNeighbors(List<Vector2Int> gridPoses, int depth = 1)
+	{
+		if (depth <= 0 || gridPoses == null || gridPoses.Count == 0) return null;
+		if (depth == 1)
+			return GetNeighbors(gridPoses);
+
+		List<Vector2Int> neighbors = new();
+
+		HashSet<Vector2Int> visited = new(gridPoses);
+		Queue<Vector2Int> currentLayer = new(gridPoses);
+
+		for (int step = 0; step < depth; step++)
+		{
+			int layerSize = currentLayer.Count;
+
+			for (int i = 0; i < layerSize; i++)
+			{
+				Vector2Int currentPos = currentLayer.Dequeue();
+
+				for (byte dir = 0; dir < _metrics.DirectionCount; dir++)
+				{
+					Vector2Int targetPos = currentPos + GetDirection(dir, currentPos.y);
+
+					if (visited.Add(targetPos) && TryGetCell(targetPos, out Cell cell))
+					{
+						neighbors.Add(cell.GridPosition);
+						currentLayer.Enqueue(targetPos);
+						cell.CellRender.SetColor(Color.cyan);
+					}
+				}
+			}
+		}
+
+		return neighbors;
 	}
 }
 
