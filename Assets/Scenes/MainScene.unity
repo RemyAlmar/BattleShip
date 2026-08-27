@@ -480,6 +480,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   _selector: {fileID: 2031031093}
   _spawner: {fileID: 629941627}
+  _shipTargetSpeed: 2
+  _stopShip: 0
 --- !u!4 &629941626
 Transform:
   m_ObjectHideFlags: 0

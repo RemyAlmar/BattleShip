@@ -74,7 +74,7 @@ public class FleetSpawner : MonoBehaviour
 		HashSet<Vector2Int> cellsPadded = new();
 		List<Cell> freeCells = grid.GetFreeCells(cellsToPlace);
 		freeCells.Shuffle();
-
+		byte direction = (byte)HexaMetrics.HexaDirection.NorthEast;
 		for (int s = 0; s < ships.Count; s++)
 		{
 			bool shipPlaced = false;
@@ -83,8 +83,9 @@ public class FleetSpawner : MonoBehaviour
 			for (int i = 0; i < freeCells.Count; i++)
 			{
 				Cell cell = freeCells[i];
-				if (!cellsPadded.Contains(cell.GridPosition) && grid.TryPlaceOccupant(ship, cell.GridPosition, (byte)HexaMetrics.HexaDirection.NorthEast))
+				if (!cellsPadded.Contains(cell.GridPosition) && grid.TryPlaceOccupant(ship, cell.GridPosition, direction))
 				{
+					ship.SetGridPositionAndRotation(cell.GridPosition, direction);
 					cellsPadded.AddRange(grid.GetNeighbors(ship.GetOccupiedCells(), padding));
 					shipPlaced = true;
 					break;

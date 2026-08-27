@@ -1,4 +1,6 @@
+using GridUtility;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 [Serializable]
@@ -12,6 +14,8 @@ public abstract class Metrics : IGridMetrics
 	public abstract Vector2Int GetDirection(byte dir, int currentY = 0);
 	public abstract int GetAngle(byte dir);
 	public abstract byte Rotate(byte dir, int count);
+
+	public abstract List<Vector2Int> GetLine(Vector2Int start, Vector2Int end);
 
 	public virtual float CellSize { get => _cellSize; set => _cellSize = Mathf.Max(0.01f, value); }
 }
@@ -57,7 +61,7 @@ public class HexaMetrics : Metrics
 	public override Vector3 GridToWorldPosition(int x, int y)
 	{
 		float xPos = x * (_innerRadius * 2f);
-		if (y % 2 != 0) xPos += _innerRadius;
+		if ((y & 1) != 0) xPos += _innerRadius;
 		float zPos = y * (_cellSize * 1.5f);
 		return new Vector3(xPos, 0f, zPos);
 	}
@@ -65,16 +69,18 @@ public class HexaMetrics : Metrics
 	public override Vector2Int WorldToGridPosition(Vector3 worldPos)
 	{
 		int y = Mathf.RoundToInt(worldPos.z / (_cellSize * 1.5f));
-		float xOffset = (y % 2 != 0) ? _innerRadius : 0f;
+		float xOffset = ((y & 1) != 0) ? _innerRadius : 0f;
 		int x = Mathf.RoundToInt((worldPos.x - xOffset) / (_innerRadius * 2f));
 		return new Vector2Int(x, y);
 	}
 
-	public override Vector2Int GetDirection(byte dir, int currentY = 0) => (currentY % 2 == 0) ? EvenRowDirections[dir] : OddRowDirections[dir];
+	public override Vector2Int GetDirection(byte dir, int currentY = 0) => ((currentY & 1) == 0) ? EvenRowDirections[dir] : OddRowDirections[dir];
 
 	public override int GetAngle(byte dir) => AngleDirections[dir];
 
 	public override byte Rotate(byte dir, int count) => (byte)((dir + (count % 6) + 6) % 6);
+
+	public override List<Vector2Int> GetLine(Vector2Int start, Vector2Int end) => HexGridUtility.GetLine(start, end);
 
 	public enum HexaDirection : byte
 	{
@@ -105,6 +111,8 @@ public class SquareMetrics : Metrics
 	public override int GetAngle(byte dir) => AngleDirections[dir];
 
 	public override Vector2Int GetDirection(byte dir, int currentY = 0) => GridDirections[dir];
+
+	public override List<Vector2Int> GetLine(Vector2Int start, Vector2Int end) => SquareGridUtility.GetLineManhattan(start, end);
 
 	public override Vector3 GridToWorldPosition(int x, int y) => new(x * CellSize, 0f, y * CellSize);
 

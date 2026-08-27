@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public interface IGridMetrics
@@ -8,5 +9,6 @@ public interface IGridMetrics
 	public Vector2Int GetDirection(byte dir, int currentY = 0);
 	public byte Rotate(byte dir, int count);
 	public float CellSize { get; }
+	public List<Vector2Int> GetLine(Vector2Int start, Vector2Int end);
 
 }

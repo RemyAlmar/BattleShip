@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class GridMap : MonoBehaviour, IGridService
 {
+	#region Fields
 	[SerializeReference] private ShapeSettings _shapeSettings;
 	[SerializeReference] private Metrics _metrics;
 	[SerializeField] private float _cellSize = 1f;
@@ -14,6 +15,7 @@ public class GridMap : MonoBehaviour, IGridService
 	[SerializeField] private Color _colorEmpty = Color.white;
 	[SerializeField] private Color _colorOccupied = Color.red;
 	private Cell[,] _grid;
+	#endregion
 	public static IGridService Instance { get; private set; }
 
 	public Vector2Int MapSize => new(_grid.GetLength(0) - 1, _grid.GetLength(1) - 1);
@@ -50,9 +52,34 @@ public class GridMap : MonoBehaviour, IGridService
 		_grid = new Cell[_rows, _columns];
 		ActionInGrid((x, y, pos) => { _grid[x, y] = new Cell(x, y, pos); });
 	}
+	private void ActionInGrid(Action<int, int, Vector3> callback)
+	{
+		if (callback == null) return;
 
+		for (int i = 0; i < _rows; i++)
+		{
+			for (int j = 0; j < _columns; j++)
+			{
+				Vector3 worldPos = _metrics.GridToWorldPosition(i, j);
+				callback.Invoke(i, j, worldPos);
+			}
+		}
+	}
+
+	#region GridGeometry
 	public bool IsValidCell(int x, int y) => x >= 0 && x < _grid.GetLength(0) && y >= 0 && y < _grid.GetLength(1);
+	public Vector3 GridToWorldPosition(Vector2Int gridPos)
+	{
+		Vector3 worldPos = Vector3.zero;
+		if (TryGetCell(gridPos, out Cell cell))
+			worldPos = cell.WorldPosition;
+		return worldPos;
+	}
+	public Quaternion DirectionToWorldRotation(byte direction) => Quaternion.Euler(new Vector3(0, _metrics.GetAngle(direction), 0));
+	public Vector2Int GetDirection(byte dir, int currentY = 0) => _metrics.GetDirection(dir, currentY);
+	#endregion
 
+	#region GridRaycaster
 	public bool TryGetHoveredCell(Ray ray, out Vector2Int gridPos)
 	{
 		gridPos = Vector2Int.zero;
@@ -68,7 +95,6 @@ public class GridMap : MonoBehaviour, IGridService
 
 		return false;
 	}
-
 	public bool TryGetWorldPosCell(Ray ray, out Vector3 worldPos)
 	{
 		worldPos = Vector3.zero;
@@ -80,133 +106,9 @@ public class GridMap : MonoBehaviour, IGridService
 
 		return false;
 	}
+	#endregion
 
-	private void ActionInGrid(Action<int, int, Vector3> callback)
-	{
-		if (callback == null) return;
-
-		for (int i = 0; i < _rows; i++)
-		{
-			for (int j = 0; j < _columns; j++)
-			{
-				Vector3 worldPos = _metrics.GridToWorldPosition(i, j);
-				callback.Invoke(i, j, worldPos);
-			}
-		}
-	}
-
-	public Vector2Int GetDirection(byte dir, int currentY = 0) => _metrics.GetDirection(dir, currentY);
-
-	public bool IsCellOccupied(int x, int y)
-	{
-		if (!IsValidCell(x, y)) return false;
-		return _grid[x, y].IsOccupied;
-	}
-
-	/// <summary>
-	/// Méthode universelle pour placer, déplacer ou faire tourner un occupant sur la grille.
-	/// </summary>
-	public bool TryPlaceOccupant(IGridOccupant occupant, Vector2Int origin, byte direction)
-	{
-		IReadOnlyList<Vector2Int> targetCells = occupant.GetOccupiedCellsAt(origin, direction);
-		foreach (Vector2Int cellGridPos in targetCells)
-		{
-			if (!TryGetCell(cellGridPos, out Cell cell))
-				return false;
-			if (cell.IsOccupied && cell.Occupant != occupant)
-				return false;
-		}
-
-		ClearOccupantCells(occupant);
-
-		occupant.SetGridPositionAndRotation(origin, direction);
-
-		foreach (Vector2Int cellGridPos in targetCells)
-		{
-			Cell cell = GetCell(cellGridPos.x, cellGridPos.y);
-			cell.Occupant = occupant;
-			cell.CellRender.SetColor(_colorOccupied);
-		}
-
-		return true;
-	}
-
-	/// <summary>
-	/// Effectue une rotation sur place de N crans.
-	/// </summary>
-	public bool TryRotateOccupant(IGridOccupant occupant, int stepCount)
-	{
-		byte targetDir = _metrics.Rotate(occupant.Direction, stepCount);
-		return TryPlaceOccupant(occupant, occupant.Origin, targetDir);
-	}
-
-	/// <summary>
-	/// Supprime l'occupant de la grille (utile lors de la destruction ou du retrait).
-	/// </summary>
-	public void ClearOccupantCells(IGridOccupant occupant)
-	{
-		foreach (Vector2Int cellGridPos in occupant.GetOccupiedCells())
-		{
-			if (TryGetCell(cellGridPos, out Cell cell) && cell.Occupant == occupant)
-			{
-				cell.Occupant = null;
-				cell.CellRender.SetColor(_colorEmpty);
-			}
-		}
-	}
-
-	public void ClearOccupantsCells(List<IGridOccupant> occupants)
-	{
-		foreach (IGridOccupant occupant in occupants)
-			ClearOccupantCells(occupant);
-	}
-
-	public Cell GetCell(int x, int y) => _grid[x, y];
-
-	public bool TryGetCell(Vector2Int gridPos, out Cell cell)
-	{
-		cell = null;
-		if (!IsValidCell(gridPos.x, gridPos.y))
-			return false;
-
-		cell = GetCell(gridPos.x, gridPos.y);
-		return true;
-	}
-
-	public Vector3 GridToWorldPosition(Vector2Int gridPos)
-	{
-		Vector3 worldPos = Vector3.zero;
-		if (TryGetCell(gridPos, out Cell cell))
-			worldPos = cell.WorldPosition;
-		return worldPos;
-	}
-
-	public Quaternion DirectionToWorldRotation(byte direction) => Quaternion.Euler(new Vector3(0, _metrics.GetAngle(direction), 0));
-
-	public List<Cell> GetCellsInRange(Vector2Int min, Vector2Int max)
-	{
-		List<Cell> cells = new();
-		for (int y = min.y; y <= max.y; y++)
-		{
-			for (int x = min.x; x <= max.x; x++)
-			{
-				if (TryGetCell(new(x, y), out Cell cell))
-					cells.Add(cell);
-			}
-		}
-		return cells;
-	}
-
-	public List<Cell> GetFreeCells(List<Cell> cells)
-	{
-		List<Cell> validCell = new(cells);
-		cells.ForEach(cell =>
-		{
-			if (cell.IsOccupied)
-				validCell.Remove(cell);
-		});
-		return validCell;
-	}
+	#region GridPathfinding
 	public List<Vector2Int> GetNeighbors(Vector2Int gridPos, int depth = 1)
 	{
 		if (depth <= 0) return new List<Vector2Int>();
@@ -267,6 +169,128 @@ public class GridMap : MonoBehaviour, IGridService
 		}
 		return neighbors;
 	}
+	public List<Vector2Int> GetLine(Vector2Int start, Vector2Int end)
+	{
+		List<Vector2Int> rawLine = _metrics.GetLine(start, end);
+		List<Vector2Int> validLine = new();
+
+		for (int i = 0; i < rawLine.Count; i++)
+		{
+			Vector2Int pos = rawLine[i];
+
+			// Dès qu'on sort du tableau, la trajectoire s'arrête à la frontière
+			if (!IsValidCell(pos.x, pos.y))
+				break;
+
+			validLine.Add(pos);
+		}
+
+		return validLine;
+	}
+	public List<Cell> GetCellsInRange(Vector2Int min, Vector2Int max)
+	{
+		List<Cell> cells = new();
+		for (int y = min.y; y <= max.y; y++)
+		{
+			for (int x = min.x; x <= max.x; x++)
+			{
+				if (TryGetCell(new(x, y), out Cell cell))
+					cells.Add(cell);
+			}
+		}
+		return cells;
+	}
+	public Cell GetCell(int x, int y) => _grid[x, y];
+	public bool TryGetCell(Vector2Int gridPos, out Cell cell)
+	{
+		cell = null;
+		if (!IsValidCell(gridPos.x, gridPos.y))
+			return false;
+
+		cell = GetCell(gridPos.x, gridPos.y);
+		return true;
+	}
+	#endregion
+
+	#region GridOccupancy
+	public bool IsCellOccupied(int x, int y)
+	{
+		if (!IsValidCell(x, y)) return false;
+		return _grid[x, y].IsOccupied;
+	}
+	/// <summary>
+	/// Méthode universelle pour placer, déplacer ou faire tourner un occupant sur la grille.
+	/// </summary>
+	public bool TryPlaceOccupant(IGridOccupant occupant, Vector2Int origin, byte direction)
+	{
+		IReadOnlyList<Vector2Int> targetCells = occupant.GetOccupiedCellsAt(origin, direction);
+		foreach (Vector2Int cellGridPos in targetCells)
+		{
+			if (!TryGetCell(cellGridPos, out Cell cell))
+				return false;
+			if (cell.IsOccupied && cell.Occupant != occupant)
+				return false;
+		}
+
+		ClearOccupantCells(occupant);
+
+		//occupant.SetGridPositionAndRotation(origin, direction);
+
+		foreach (Vector2Int cellGridPos in targetCells)
+		{
+			Cell cell = GetCell(cellGridPos.x, cellGridPos.y);
+			cell.Occupant = occupant;
+			cell.CellRender.SetColor(_colorOccupied);
+		}
+
+		return true;
+	}
+	/// <summary>
+	/// Effectue une rotation sur place de N crans.
+	/// </summary>
+	public bool TryRotateOccupant(IGridOccupant occupant, int stepCount)
+	{
+		byte targetDir = _metrics.Rotate(occupant.Direction, stepCount);
+		return TryPlaceOccupant(occupant, occupant.Origin, targetDir);
+	}
+	/// <summary>
+	/// Supprime l'occupant de la grille (utile lors de la destruction ou du retrait).
+	/// </summary>
+	public void ClearOccupantCells(IGridOccupant occupant)
+	{
+		foreach (Vector2Int cellGridPos in occupant.GetOccupiedCells())
+		{
+			if (TryGetCell(cellGridPos, out Cell cell) && cell.Occupant == occupant)
+			{
+				cell.Occupant = null;
+				cell.CellRender.SetColor(_colorEmpty);
+			}
+		}
+	}
+	public void ClearOccupantsCells(List<IGridOccupant> occupants)
+	{
+		foreach (IGridOccupant occupant in occupants)
+			ClearOccupantCells(occupant);
+	}
+	public List<Cell> GetFreeCells(List<Cell> cells)
+	{
+		List<Cell> validCell = new(cells);
+		cells.ForEach(cell =>
+		{
+			if (cell.IsOccupied)
+				validCell.Remove(cell);
+		});
+		return validCell;
+	}
+	public bool TryGetOccupant(Vector2Int candidateCell, out IGridOccupant targetOccupant)
+	{
+		targetOccupant = null;
+		if (!TryGetCell(candidateCell, out Cell cell)) return false;
+		targetOccupant = cell.Occupant;
+		return cell.IsOccupied;
+	}
+	#endregion
+
 }
 
 public class Cell
