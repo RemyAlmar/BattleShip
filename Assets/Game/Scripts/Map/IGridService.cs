@@ -11,6 +11,8 @@ public interface IGridGeometry
 	public Vector3 GridToWorldPosition(Vector2Int gridPos);
 	public Quaternion DirectionToWorldRotation(byte direction);
 	public Vector2Int GetDirection(byte dir, int currentY = 0);
+	public byte GetRotation(byte curDir, int step);
+	public int DirectionCount { get; }
 }
 public interface IGridRaycaster
 {

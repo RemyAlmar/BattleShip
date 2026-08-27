@@ -34,6 +34,7 @@ public class FleetSpawner : MonoBehaviour
 		{
 			ShipController shipController = Instantiate(_shipPrefab);
 			shipController.Initialize(_shipList[i]);
+			shipController.name = _shipList[i].Data.Name;
 			_fleet.Add(shipController);
 		}
 	}

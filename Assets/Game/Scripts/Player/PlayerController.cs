@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -9,9 +8,8 @@ public class PlayerController : MonoBehaviour, PlayerInputAction.IGameplayAction
 	[SerializeField] private FleetSpawner _spawner;
 	private IGridOccupant _shipSelected;
 	[SerializeField, Range(-1, 5)] private int _shipTargetSpeed;
+	[SerializeField, Range(-5, 5)] private int _shipDirection;
 	[SerializeField] private bool _stopShip;
-	private Vector2Int[] _pathHover = new Vector2Int[2];
-	private List<Vector2Int> _path = new();
 
 	public Vector2 MousePosition { get; private set; }
 
@@ -64,10 +62,11 @@ public class PlayerController : MonoBehaviour, PlayerInputAction.IGameplayAction
 			}
 			else if (!cell.IsOccupied && _shipSelected != null)
 			{
-				IGridMovable movableShip = (IGridMovable)_shipSelected;
-				movableShip.SetTargetSpeed(_shipTargetSpeed);
-				movableShip.CalculateSpeed(_stopShip);
-				movableShip.Move();
+				if (_shipSelected is IGridMovable movableShip)
+				{
+					MoveOrder order = new(_shipTargetSpeed, _shipDirection, _stopShip);
+					movableShip.ExecuteOrder(order);
+				}
 			}
 
 		}

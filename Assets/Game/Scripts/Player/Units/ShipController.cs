@@ -7,6 +7,7 @@ public class ShipController : MonoBehaviour, IInitializable<ShipData_SO>, IGridO
 {
 	[SerializeField] private ShipData_SO _data;
 	private RenderProvider _render;
+	private int _accumulatedDistance = 0;
 
 	public Transform Transform => transform;
 	public Vector2Int Origin { get; private set; }
@@ -34,7 +35,6 @@ public class ShipController : MonoBehaviour, IInitializable<ShipData_SO>, IGridO
 	}
 
 	public List<Vector2Int> GetOccupiedCells() => GetOccupiedCellsAt(Origin, Direction);
-
 	public List<Vector2Int> GetOccupiedCellsAt(Vector2Int origin, byte direction)
 	{
 		List<Vector2Int> occupied = new();
@@ -47,13 +47,11 @@ public class ShipController : MonoBehaviour, IInitializable<ShipData_SO>, IGridO
 
 		return occupied;
 	}
-
 	public void SetGridPositionAndRotation(Vector2Int newOrigin, byte newDirection)
 	{
 		Origin = newOrigin;
 		Direction = newDirection;
 
-		// Le bateau demande au service de grille les vraies coordonnées 3D
 		IGridService grid = GridMap.Instance;
 		if (grid != null)
 		{
@@ -65,40 +63,40 @@ public class ShipController : MonoBehaviour, IInitializable<ShipData_SO>, IGridO
 	}
 
 
-	public void CalculateSpeed(bool _haveToStop = false)
-	{
-		if (_data == null) return;
-
-		if (_haveToStop)
-		{
-			Stop();
-			return;
-		}
-
-		if (CurrentSpeed < TargetSpeed)
-		{
-			CurrentSpeed = Mathf.Min(TargetSpeed, CurrentSpeed + _data.Data.AccelerationRate);
-		}
-		else
-		{
-			float reduction = TargetSpeed < 0 ? _data.Data.DecelerationRate + _data.Data.Braking : _data.Data.DecelerationRate;
-			CurrentSpeed = Mathf.Max(Mathf.Max(0, TargetSpeed), CurrentSpeed - reduction);
-		}
-	}
-	public void SetTargetSpeed(int target)
-	{
-		TargetSpeed = Mathf.Clamp(target, -1, _data.Data.SpeedMax);
-	}
-	public void Move()
+	private void SetTargetSpeed(int target) => TargetSpeed = Mathf.Clamp(target, -1, _data.Data.SpeedMax);
+	public void ExecuteOrder(MoveOrder order)
 	{
 		IGridService grid = GridMap.Instance;
 		if (_data == null || grid == null) return;
 
-		List<Vector2Int> path = CalculatePath(grid);
+		if (order.EmergencyStop)
+		{
+			TryEmergencyStop();
+			return;
+		}
+
+		SetTargetSpeed(order.TargetSpeed);
+		CalculateSpeed();
+
+		// Reçoit une List<PathNode> au lieu de List<Vector2Int>
+		List<PathNode> path = CalculateCurvedPath(grid, order.RequestedTurn);
 		if (path.Count <= 1) return;
 
-		Vector2Int destination = ResolveMovementPath(grid, path);
-		ApplyMovement(grid, destination);
+		PathNode destinationNode = ResolveMovementPath(grid, path);
+		ApplyMovement(grid, destinationNode);
+	}
+	private void TryEmergencyStop()
+	{
+		float risk = Mathf.Clamp(_data.Data.RiskFactor * CurrentSpeed, 0f, 100f);
+		float roll = Random.value * 100;
+		if (roll <= risk)
+			ApplyStructuralDamage();
+		Stop();
+	}
+
+	private void ApplyStructuralDamage()
+	{
+		Debug.LogWarning($"{name} a subi des dégâts de structure suite au freinage d'urgence !");
 	}
 
 	#region MoveFunctionHelpers
@@ -121,32 +119,85 @@ public class ShipController : MonoBehaviour, IInitializable<ShipData_SO>, IGridO
 
 		return (targetCell == Origin) ? new List<Vector2Int>() : grid.GetLine(Origin, targetCell);
 	}
-	private Vector2Int ResolveMovementPath(IGridService grid, List<Vector2Int> path)
+	private List<PathNode> CalculateCurvedPath(IGridService grid, int requestedTurn)
 	{
-		Vector2Int lastValidPos = Origin;
+		List<PathNode> path = new() { new(Origin, Direction, _accumulatedDistance) };
+		Vector2Int currentCell = Origin;
+		byte currentDir = Direction;
+
+		int turnSign = System.Math.Sign(requestedTurn);
+		int remainingTurns = System.Math.Abs(requestedTurn);
+
+		int tempAccumulatedDistance = _accumulatedDistance;
+		int stepPerTurn = _data.Data.StepsPerTurn;
+
+		if (stepPerTurn == 0 && remainingTurns > 0)
+		{
+			currentDir = grid.GetRotation(currentDir, turnSign * remainingTurns);
+			remainingTurns = 0;
+		}
+
+		for (int step = 0; step < (int)CurrentSpeed; step++)
+		{
+			tempAccumulatedDistance++;
+			if (stepPerTurn > 0 && remainingTurns > 0 && tempAccumulatedDistance >= stepPerTurn)
+			{
+				currentDir = grid.GetRotation(currentDir, turnSign);
+				remainingTurns--;
+				tempAccumulatedDistance = 0;
+			}
+			Vector2Int dirVector = grid.GetDirection(currentDir, currentCell.y);
+			Vector2Int nextCell = currentCell + dirVector;
+
+			if (!grid.IsValidCell(nextCell.x, nextCell.y))
+				break;
+
+			currentCell = nextCell;
+			path.Add(new(currentCell, currentDir, tempAccumulatedDistance));
+		}
+
+		return path;
+	}
+	private PathNode ResolveMovementPath(IGridService grid, List<PathNode> path)
+	{
+		PathNode lastValidNode = path[0];
 
 		for (int i = 1; i < path.Count; i++)
 		{
-			Vector2Int candidateCell = path[i];
+			PathNode candidateNode = path[i];
 
-			if (grid.TryGetOccupant(candidateCell, out IGridOccupant targetOccupant))
+			if (grid.TryGetOccupant(candidateNode.Position, out IGridOccupant targetOccupant) && targetOccupant != (IGridOccupant)this)
 			{
 				Hit(targetOccupant);
-				return lastValidPos;
+				return lastValidNode;
 			}
-
-			lastValidPos = candidateCell;
+			lastValidNode = candidateNode;
 		}
-
-		return lastValidPos;
+		return lastValidNode;
 	}
-	private void ApplyMovement(IGridService grid, Vector2Int destination)
-	{
-		if (destination == Origin) return;
 
-		if (grid.TryPlaceOccupant(this, destination, Direction))
+	private void ApplyMovement(IGridService grid, PathNode destinationNode)
+	{
+		if (destinationNode.Position == Origin) return;
+
+		_accumulatedDistance = destinationNode.AccumulatedDistance;
+
+		if (grid.TryPlaceOccupant(this, destinationNode.Position, destinationNode.Direction))
 		{
-			SetGridPositionAndRotation(destination, Direction);
+			SetGridPositionAndRotation(destinationNode.Position, destinationNode.Direction);
+		}
+	}
+	private void CalculateSpeed()
+	{
+		if (_data == null) return;
+		if (CurrentSpeed < TargetSpeed)
+		{
+			CurrentSpeed = Mathf.Min(TargetSpeed, CurrentSpeed + _data.Data.AccelerationRate);
+		}
+		else
+		{
+			float reduction = TargetSpeed < 0 ? _data.Data.DecelerationRate + _data.Data.Braking : _data.Data.DecelerationRate;
+			CurrentSpeed = Mathf.Max(Mathf.Max(0, TargetSpeed), CurrentSpeed - reduction);
 		}
 	}
 	#endregion
@@ -159,6 +210,7 @@ public class ShipController : MonoBehaviour, IInitializable<ShipData_SO>, IGridO
 	{
 		CurrentSpeed = 0;
 		TargetSpeed = 0;
+		_accumulatedDistance = 0;
 	}
 
 	public void Tick(int tick)

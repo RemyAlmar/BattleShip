@@ -19,6 +19,7 @@ public class GridMap : MonoBehaviour, IGridService
 	public static IGridService Instance { get; private set; }
 
 	public Vector2Int MapSize => new(_grid.GetLength(0) - 1, _grid.GetLength(1) - 1);
+	public int DirectionCount => _metrics.DirectionCount;
 
 	private void Awake()
 	{
@@ -77,6 +78,7 @@ public class GridMap : MonoBehaviour, IGridService
 	}
 	public Quaternion DirectionToWorldRotation(byte direction) => Quaternion.Euler(new Vector3(0, _metrics.GetAngle(direction), 0));
 	public Vector2Int GetDirection(byte dir, int currentY = 0) => _metrics.GetDirection(dir, currentY);
+	public byte GetRotation(byte curDir, int step) => _metrics.Rotate(curDir, step);
 	#endregion
 
 	#region GridRaycaster
@@ -233,8 +235,6 @@ public class GridMap : MonoBehaviour, IGridService
 		}
 
 		ClearOccupantCells(occupant);
-
-		//occupant.SetGridPositionAndRotation(origin, direction);
 
 		foreach (Vector2Int cellGridPos in targetCells)
 		{

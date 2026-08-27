@@ -19,7 +19,7 @@ MonoBehaviour:
     AccelerationRate: 1
     DecelerationRate: 0.5
     Braking: 0.5
-    TurnMax: 1
+    StepsPerTurn: 4
     RiskFactor: 25
   Mesh: {fileID: -5530854144057380378, guid: fc887fe4a789f874889a8c336401c3d4, type: 3}
   Material: {fileID: 2100000, guid: a10eae27f8eb3ca41926337b0650be8b, type: 2}

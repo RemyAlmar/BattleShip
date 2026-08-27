@@ -270,8 +270,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.4268266, y: 0.008138767, z: -0.0038415403, w: 0.90428877}
-  m_LocalPosition: {x: 7.660294, y: 16.409304, z: -7.903983}
+  m_LocalRotation: {x: 0.5128204, y: -0.009013915, z: 0.005384822, w: 0.8584317}
+  m_LocalPosition: {x: 13.351831, y: 19.731815, z: -1.7636509}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -413,7 +413,7 @@ Transform:
   m_GameObject: {fileID: 410087039}
   serializedVersion: 2
   m_LocalRotation: {x: 0.40821788, y: -0.23456968, z: 0.10938163, w: 0.8754261}
-  m_LocalPosition: {x: 0, y: 3, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -480,7 +480,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   _selector: {fileID: 2031031093}
   _spawner: {fileID: 629941627}
-  _shipTargetSpeed: 2
+  _shipTargetSpeed: 0
+  _shipDirection: 0
   _stopShip: 0
 --- !u!4 &629941626
 Transform:
@@ -491,7 +492,7 @@ Transform:
   m_GameObject: {fileID: 629941624}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 9.4, y: -0, z: 7.61}
+  m_LocalPosition: {x: 0, y: -0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -518,8 +519,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 5dc64ab3ac65bf64eae4f729e901af00, type: 2}
   _spawnZonePercent:
     Min: {x: 0, y: 0}
-    Max: {x: 100, y: 100}
-  _spawnPadding: 5
+    Max: {x: 100, y: 15}
+  _spawnPadding: 3
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0

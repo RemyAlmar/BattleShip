@@ -30,7 +30,7 @@ public struct ShipData
 	[Min(0), Tooltip("Taux d'accéleration par tour")] public float AccelerationRate;
 	[Min(0), Tooltip("Taux de decéleration par tour")] public float DecelerationRate;
 	[Min(0), Tooltip("Taux de freinage par tour")] public float Braking;
-	[Min(0), Tooltip("Nombre de cran max pour tourner par tour")] public int TurnMax;
+	[Min(0), Tooltip("Nombre de case à parcourir pour tourner d'un cran")] public int StepsPerTurn;
 	[Range(0, 100), Tooltip("Pourcentage de chance d'avoir un surrégime selon la vitesse")] public float RiskFactor;
 
 }
