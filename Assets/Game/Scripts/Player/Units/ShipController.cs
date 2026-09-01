@@ -93,10 +93,6 @@ public class ShipController : MonoBehaviour, IInitializable<ShipData_SO>, IGridO
 		Stop();
 	}
 
-	private void ApplyStructuralDamage()
-	{
-		Debug.LogWarning($"{name} a subi des dégâts de structure suite au freinage d'urgence !");
-	}
 
 	#region MoveFunctionHelpers
 	private List<Vector2Int> CalculatePath(IGridService grid)
@@ -200,6 +196,10 @@ public class ShipController : MonoBehaviour, IInitializable<ShipData_SO>, IGridO
 		}
 	}
 	#endregion
+	private void ApplyStructuralDamage()
+	{
+		Debug.LogWarning($"{name} a subi des dégâts de structure suite au freinage d'urgence !");
+	}
 	private void Hit(IGridOccupant targetOccupant)
 	{
 		Debug.Log($"{name} Hit {targetOccupant.Transform.name}");

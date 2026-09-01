@@ -5,11 +5,6 @@ public class PlayerController : MonoBehaviour, PlayerInputAction.IGameplayAction
 {
 	private PlayerInputAction _action;
 	[SerializeField] private GameObject _selector;
-	[SerializeField] private FleetSpawner _spawner;
-	private IGridOccupant _shipSelected;
-	[SerializeField, Range(-1, 5)] private int _shipTargetSpeed;
-	[SerializeField, Range(-5, 5)] private int _shipDirection;
-	[SerializeField] private bool _stopShip;
 
 	public Vector2 MousePosition { get; private set; }
 
@@ -17,11 +12,6 @@ public class PlayerController : MonoBehaviour, PlayerInputAction.IGameplayAction
 	{
 		_action ??= new();
 	}
-	private void Start()
-	{
-		_spawner.SpawnFleet();
-	}
-
 	private void OnEnable()
 	{
 		_action?.Enable();
@@ -49,26 +39,24 @@ public class PlayerController : MonoBehaviour, PlayerInputAction.IGameplayAction
 	public void OnInteract(InputAction.CallbackContext context)
 	{
 
-		if (!context.canceled) return;
+		if (!context.canceled || UIManager.Instance.IsInteractingWithUI) return;
 
 		Ray ray = Camera.main.ScreenPointToRay(MousePosition);
 
 		if (GridMap.Instance.TryGetHoveredCell(ray, out Vector2Int gridPos))
 		{
 			Cell cell = GridMap.Instance.GetCell(gridPos.x, gridPos.y);
-			if (cell.IsOccupied)
-			{
-				_shipSelected = cell.Occupant != _shipSelected ? cell.Occupant : null;
-			}
-			else if (!cell.IsOccupied && _shipSelected != null)
-			{
-				if (_shipSelected is IGridMovable movableShip)
-				{
-					MoveOrder order = new(_shipTargetSpeed, _shipDirection, _stopShip);
-					movableShip.ExecuteOrder(order);
-				}
-			}
-
+			EventBus.Invoke(new CellClickedEvent(cell));
 		}
+	}
+}
+
+public struct CellClickedEvent
+{
+	public Cell Cell { get; private set; }
+
+	public CellClickedEvent(Cell cell)
+	{
+		this.Cell = cell;
 	}
 }

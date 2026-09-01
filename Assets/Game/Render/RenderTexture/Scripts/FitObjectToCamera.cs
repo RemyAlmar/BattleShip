@@ -9,7 +9,7 @@ public class FitObjectToCamera : MonoBehaviour
 	[SerializeField] private GameObject _target;
 	[SerializeField] private FitMethod _fitMethod = FitMethod.Plane;
 	[SerializeField] private float _paddingFactor = 0f;
-	[SerializeField, SingleLayer] private int _layer;
+	[SerializeField, SingleLayer] private int _layerToRender;
 
 	private Camera _cam;
 	public Camera Cam => _cam ? _cam : _cam = GetComponent<Camera>();
@@ -22,7 +22,7 @@ public class FitObjectToCamera : MonoBehaviour
 	public void FitObject()
 	{
 		if (_target == null) return;
-
+		_target.layer = _layerToRender;
 		switch (_fitMethod)
 		{
 			case FitMethod.Plane:

@@ -15,7 +15,27 @@ public class FleetSpawner : MonoBehaviour
 	[SerializeField] private MinMax<Vector2Int> _spawnZonePercent = new(new(0, 0), new(100, 100));
 	[SerializeField, Range(0, 5)] private int _spawnPadding = 1;
 
-	public void SpawnFleet()
+	private void OnEnable()
+	{
+		EventBus.Subscribe<GameEvent>(OnGameEvent);
+	}
+
+	private void OnDisable()
+	{
+		EventBus.Unsubscribe<GameEvent>(OnGameEvent);
+	}
+
+	private void OnGameEvent(GameEvent @event)
+	{
+		switch (@event)
+		{
+			case GameEvent.StartGame:
+				SpawnFleet();
+				break;
+		}
+	}
+
+	private void SpawnFleet()
 	{
 		IGridService grid = GridMap.Instance;
 		if (grid == null) return;
@@ -25,7 +45,9 @@ public class FleetSpawner : MonoBehaviour
 		{
 			DestroyFleet();
 			Debug.LogError("[SPAWN] Aucune cellule disponible pour placer la flotte");
+			return;
 		}
+		EventBus.Invoke(new FleetSpawnedEvent(_fleet));
 	}
 
 	private void CreateFleet()
@@ -47,7 +69,6 @@ public class FleetSpawner : MonoBehaviour
 			Destroy(ship.Transform.gameObject);
 		}
 	}
-
 	private bool PlaceFleet(IGridService grid = null)
 	{
 		grid ??= GridMap.Instance;
@@ -97,5 +118,14 @@ public class FleetSpawner : MonoBehaviour
 		}
 
 		return true;
+	}
+}
+
+public struct FleetSpawnedEvent
+{
+	public List<IGridOccupant> Fleet { get; private set; }
+	public FleetSpawnedEvent(List<IGridOccupant> fleet)
+	{
+		Fleet = fleet;
 	}
 }
