@@ -78,7 +78,6 @@ public class ShipController : MonoBehaviour, IInitializable<ShipData_SO>, IGridO
 		SetTargetSpeed(order.TargetSpeed);
 		CalculateSpeed();
 
-		// Reçoit une List<PathNode> au lieu de List<Vector2Int>
 		List<PathNode> path = CalculateCurvedPath(grid, order.RequestedTurn);
 		if (path.Count <= 1) return;
 
