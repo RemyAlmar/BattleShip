@@ -648,7 +648,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 24468f5c0afe5a743b36389d74561c3f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIObjectRotator
-  _targetTransform: {fileID: 1882679604}
 --- !u!1 &629941624
 GameObject:
   m_ObjectHideFlags: 0
@@ -841,7 +840,7 @@ MonoBehaviour:
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_enableKerning: 0
-  m_ActiveFontFeatures: 6e72656b
+  m_ActiveFontFeatures: 6e72656bu
   m_enableExtraPadding: 0
   checkPaddingRequired: 0
   m_isRichText: 1
@@ -1216,7 +1215,7 @@ MonoBehaviour:
   _shapeSettings:
     rid: 1393533617913463089
   _metrics:
-    rid: 1393533684822310974
+    rid: 6874757099550932994
   _cellSize: 1
   _rows: 50
   _columns: 50
@@ -1243,8 +1242,8 @@ MonoBehaviour:
         _sizeMode: 0
         _dimension: 1
         _gonCount: 6
-    - rid: 1393533684822310974
-      type: {class: HexaMetrics, ns: , asm: Assembly-CSharp}
+    - rid: 6874757099550932994
+      type: {class: HexaMetrics, ns: Game.Scripts.Map, asm: Assembly-CSharp}
       data: 
 --- !u!4 &1277160874
 Transform:
@@ -1492,6 +1491,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7fb01aebe29040948a279d818c9e4fec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DragTransform
+  _draggableTransform: {fileID: 539202733}
   _sensitivity: 0.5
   _useSnapping: 1
   _snapInterval: 60
@@ -1710,7 +1710,7 @@ MonoBehaviour:
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_enableKerning: 0
-  m_ActiveFontFeatures: 6e72656b
+  m_ActiveFontFeatures: 6e72656bu
   m_enableExtraPadding: 0
   checkPaddingRequired: 0
   m_isRichText: 1

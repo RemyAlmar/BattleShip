@@ -2,6 +2,7 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!687078895 &4343727234628468602
 SpriteAtlas:
+  serializedVersion: 3
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -40,12 +41,7 @@ SpriteAtlas:
     - eb2ad57be57e2514a8b2c663ea4b0e7a: 21300000
     - 2f66282cb2814e348b0381efa297aadd: 21300000
   m_MasterAtlas: {fileID: 0}
-  m_PackedSprites:
-  - {fileID: 21300000, guid: eb2ad57be57e2514a8b2c663ea4b0e7a, type: 3}
-  - {fileID: 21300000, guid: 2f66282cb2814e348b0381efa297aadd, type: 3}
-  m_PackedSpriteNamesToIndex:
-  - IMG_Helm
-  - IMG_HelmCenter
   m_RenderDataMap: {}
   m_Tag: HUD_Atlas
   m_IsVariant: 0
+  m_Guid: 825b9f1ffee35c044b1bc80d64c3949e
